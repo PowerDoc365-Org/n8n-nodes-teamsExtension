@@ -17,7 +17,7 @@ import { createSubscription, getResourcePath } from './v2/helpers/utils-trigger'
 import { listSearch } from './v2/methods';
 import { microsoftApiRequest, microsoftApiRequestAllItems } from './v2/transport';
 
-export class MicrosoftTeamsTranscriptionTrigger implements INodeType {
+export class MicrosoftTeamsExtensionTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Microsoft Teams Extension Trigger',
 		name: 'microsoftTeamsExtensionTrigger',

@@ -12,7 +12,7 @@ import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 import { microsoftApiRequest, microsoftApiRequestAllItems } from './v2/transport';
 import { listSearch } from './v2/methods';
 
-export class MicrosoftTeamsTranscript implements INodeType {
+export class MicrosoftTeamsExtension implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Microsoft Teams Extension',
 		name: 'microsoftTeamsExtension',

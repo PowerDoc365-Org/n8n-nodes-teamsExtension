@@ -1,0 +1,15 @@
+module.exports = {
+	parser: '@typescript-eslint/parser',
+	parserOptions: {
+		ecmaVersion: 2022,
+		sourceType: 'module',
+	},
+	extends: [
+		'plugin:n8n-nodes-base/community',
+	],
+	rules: {
+		'n8n-nodes-base/node-param-display-name-miscased': 'warn',
+		'n8n-nodes-base/node-param-description-miscased-url': 'warn',
+		'n8n-nodes-base/node-param-description-miscased-id': 'warn',
+	},
+};

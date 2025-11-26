@@ -3,6 +3,7 @@ import type {
 	IExecuteFunctions,
 	IHookFunctions,
 	ILoadOptionsFunctions,
+	IWebhookFunctions,
 	IHttpRequestMethods,
 	IRequestOptions,
 	JsonObject,
@@ -10,7 +11,7 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 export async function microsoftApiRequest(
-	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
+	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
 	method: IHttpRequestMethods,
 	resource: string,
 	body: IDataObject = {},
@@ -47,7 +48,7 @@ export async function microsoftApiRequest(
 }
 
 export async function microsoftApiRequestAllItems(
-	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
+	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
 	propertyName: string,
 	method: IHttpRequestMethods,
 	endpoint: string,

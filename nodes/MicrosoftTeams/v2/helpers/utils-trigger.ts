@@ -1,7 +1,7 @@
-import type { IHookFunctions } from 'n8n-workflow';
+import type { IHookFunctions, IWebhookFunctions } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
-import type { CreateSubscriptionBody, SubscriptionResponse } from './types';
+import type { CreateSubscriptionBody, SubscriptionResponse, WebhookNotification } from './types';
 import { microsoftApiRequest } from '../transport';
 
 /**
@@ -86,5 +86,62 @@ export async function getResourcePath(
 				message: 'Invalid event type',
 				description: `Event type "${event}" is not supported`,
 			});
+	}
+}
+
+/**
+ * Checks if a notification is a lifecycle notification (subscription management)
+ * rather than a change notification (actual data change)
+ */
+export function isLifecycleNotification(notification: WebhookNotification): boolean {
+	// Lifecycle notifications have one of these characteristics:
+	// 1. Has a lifecycleEvent property
+	// 2. Resource starts with "Subscriptions/"
+	// 3. ResourceData has @odata.type of "#microsoft.graph.subscription"
+
+	if (notification.lifecycleEvent) {
+		return true;
+	}
+
+	if (notification.resource?.startsWith('Subscriptions/')) {
+		return true;
+	}
+
+	if (notification.resourceData?.['@odata.type'] === '#microsoft.graph.subscription') {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Renews a subscription by extending its expiration time
+ */
+export async function renewSubscription(
+	this: IWebhookFunctions,
+	subscriptionId: string,
+): Promise<SubscriptionResponse | null> {
+	try {
+		// Calculate new expiration (7 days from now)
+		const now = new Date();
+		const expirationDateTime = new Date(now.getTime() + 1008 * 60 * 1000);
+
+		const body = {
+			expirationDateTime: expirationDateTime.toISOString(),
+		};
+
+		const subscription = await microsoftApiRequest.call(
+			this,
+			'PATCH',
+			`/subscriptions/${subscriptionId}`,
+			body,
+		);
+
+		console.log(`Successfully renewed subscription ${subscriptionId} until ${expirationDateTime.toISOString()}`);
+
+		return subscription as SubscriptionResponse;
+	} catch (error: any) {
+		console.error(`Failed to renew subscription ${subscriptionId}:`, error.message);
+		return null;
 	}
 }

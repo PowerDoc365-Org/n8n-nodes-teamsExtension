@@ -13,7 +13,12 @@ import type {
 import { NodeApiError, NodeConnectionTypes } from 'n8n-workflow';
 
 import type { WebhookNotification, SubscriptionResponse } from './v2/helpers/types';
-import { createSubscription, getResourcePath } from './v2/helpers/utils-trigger';
+import {
+	createSubscription,
+	getResourcePath,
+	isLifecycleNotification,
+	renewSubscription,
+} from './v2/helpers/utils-trigger';
 import { listSearch } from './v2/methods';
 import { microsoftApiRequest, microsoftApiRequestAllItems } from './v2/transport';
 
@@ -295,12 +300,40 @@ export class MicrosoftTeamsExtensionTrigger implements INodeType {
 			return { noWebhookResponse: true };
 		}
 
-		// Handle change notifications
+		// Handle notifications
 		const eventNotifications = req.body.value as WebhookNotification[];
 
-		// Return each notification as a separate workflow execution
+		// Separate lifecycle notifications from change notifications
+		const lifecycleNotifications: WebhookNotification[] = [];
+		const changeNotifications: WebhookNotification[] = [];
+
+		for (const notification of eventNotifications) {
+			if (isLifecycleNotification(notification)) {
+				lifecycleNotifications.push(notification);
+			} else {
+				changeNotifications.push(notification);
+			}
+		}
+
+		// Handle lifecycle notifications (subscription expiration warnings)
+		for (const lifecycleNotification of lifecycleNotifications) {
+			console.log(
+				`Received lifecycle notification for subscription ${lifecycleNotification.subscriptionId}`,
+				lifecycleNotification.lifecycleEvent || 'expiration warning',
+			);
+
+			// Renew the subscription
+			await renewSubscription.call(this, lifecycleNotification.subscriptionId);
+		}
+
+		// If there are no change notifications, just acknowledge receipt
+		if (changeNotifications.length === 0) {
+			return { noWebhookResponse: true };
+		}
+
+		// Return each change notification as a separate workflow execution
 		const response: IWebhookResponseData = {
-			workflowData: eventNotifications.map((event) => [
+			workflowData: changeNotifications.map((event) => [
 				{
 					json: {
 						subscriptionId: event.subscriptionId,

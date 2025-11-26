@@ -3,7 +3,8 @@ import type { IDataObject } from 'n8n-workflow';
 export interface WebhookNotification {
 	subscriptionId: string;
 	clientState?: string;
-	changeType: 'created' | 'updated' | 'deleted';
+	changeType?: 'created' | 'updated' | 'deleted';
+	lifecycleEvent?: 'subscriptionRemoved' | 'reauthorizationRequired' | 'missed';
 	resource: string;
 	subscriptionExpirationDateTime: string;
 	resourceData?: IDataObject;
